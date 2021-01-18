@@ -98,6 +98,7 @@ public:
 		FCN_RESNET18_VOC_512x320,   		/**< FCN-ResNet18 trained on Pascal VOC dataset (512x320) */
 		FCN_RESNET18_SUNRGB_512x400,		/**< FCN-ResNet18 trained on SUN RGB-D dataset (512x400) */
 		FCN_RESNET18_SUNRGB_640x512,		/**< FCN-ResNet18 trained on SUN RGB-D dataset (640x512) */
+		DEEPLABS_V3_RUMEX,
 
 		/* legacy models (deprecated) */
 		FCN_ALEXNET_PASCAL_VOC,		     /**< FCN-Alexnet trained on Pascal VOC dataset. */
@@ -352,6 +353,8 @@ protected:
 	segNet();
 	
 	bool classify( const char* ignore_class );
+	bool classify_binary( const char* ignore_class );
+	bool classify_multi( const char* ignore_class );
 
 	bool overlayPoint( void* input, uint32_t in_width, uint32_t in_height, imageFormat in_format, void* output, uint32_t out_width, uint32_t out_height, imageFormat out_format, bool mask_only );
 	bool overlayLinear( void* input, uint32_t in_width, uint32_t in_height, imageFormat in_format, void* output, uint32_t out_width, uint32_t out_height, imageFormat out_format, bool mask_only );

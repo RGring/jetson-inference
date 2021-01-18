@@ -159,6 +159,8 @@ segNet::NetworkType segNet::NetworkTypeFromStr( const char* modelName )
 		type = segNet::FCN_RESNET18_SUNRGB_512x400;
 	else if( strcasecmp(modelName, "fcn-resnet18-sun-640x512") == 0 || strcasecmp(modelName, "fcn-resnet18-sun-rgbd-640x512") == 0 )
 		type = segNet::FCN_RESNET18_SUNRGB_640x512;
+	else if( strcasecmp(modelName, "deeplabs_v3_rumex") == 0)
+		type = segNet::DEEPLABS_V3_RUMEX;
 
 	// legacy models
 	else if( strcasecmp(modelName, "fcn-alexnet-cityscapes-sd") == 0 || strcasecmp(modelName, "fcn-alexnet-cityscapes") == 0 )
@@ -199,6 +201,7 @@ const char* segNet::NetworkTypeToStr( segNet::NetworkType type )
 		case FCN_RESNET18_VOC_512x320:		return "fcn-resnet18-voc-512x320";
 		case FCN_RESNET18_SUNRGB_512x400:		return "fcn-resnet18-sun-512x400";
 		case FCN_RESNET18_SUNRGB_640x512:		return "fcn-resnet18-sun-640x512";
+		case DEEPLABS_V3_RUMEX: 				return "deeplabs_v3_rumex";
 
 		// legacy models
 		case FCN_ALEXNET_PASCAL_VOC:			return "fcn-alexnet-pascal-voc";
@@ -244,6 +247,8 @@ segNet* segNet::Create( NetworkType networkType, uint32_t maxBatchSize,
 		net = LOAD_ONNX("FCN-ResNet18-SUN-RGBD-512x400");
 	else if( networkType == FCN_RESNET18_SUNRGB_640x512 )
 		net = LOAD_ONNX("FCN-ResNet18-SUN-RGBD-640x512");
+	else if( networkType == DEEPLABS_V3_RUMEX )
+		net = LOAD_ONNX("deeplabs_v3_rumex");
 
 	// legacy models
 	else if( networkType == FCN_ALEXNET_PASCAL_VOC )
@@ -752,9 +757,20 @@ bool segNet::Process( void* image, uint32_t width, uint32_t height, imageFormat 
 	return true;
 }
 
+bool segNet::classify( const char* ignore_class )
+{
+	const int s_c = DIMS_C(mOutputs[0].dims);
+
+	if (s_c == 1){
+		return classify_binary(ignore_class);
+	}else{
+		return classify_multi(ignore_class);
+	}
+
+}
 
 // argmax classification
-bool segNet::classify( const char* ignore_class )
+bool segNet::classify_binary( const char* ignore_class )
 {
 	// retrieve scores
 	float* scores = mOutputs[0].CPU;
@@ -762,6 +778,7 @@ bool segNet::classify( const char* ignore_class )
 	const int s_w = DIMS_W(mOutputs[0].dims);
 	const int s_h = DIMS_H(mOutputs[0].dims);
 	const int s_c = DIMS_C(mOutputs[0].dims);
+	// LogInfo(ignore_class);
 		
 	//const float s_x = float(width) / float(s_w);		// TODO bug: this should use mWidth/mHeight dimensions, in case user dimensions are different
 	//const float s_y = float(height) / float(s_h);
@@ -772,8 +789,55 @@ bool segNet::classify( const char* ignore_class )
 	// if desired, find the ID of the class to ignore (typically void)
 	const int ignoreID = FindClassID(ignore_class);
 	
-	//printf(LOG_TRT "segNet::Process -- s_w %i  s_h %i  s_c %i  s_x %f  s_y %f\n", s_w, s_h, s_c, s_x, s_y);
-	//printf(LOG_TRT "segNet::Process -- ignoring class '%s' id=%i\n", ignore_class, ignoreID);
+	// printf(LOG_TRT "segNet::Process -- s_w %i  s_h %i  s_c %i  s_x %f  s_y %f\n", s_w, s_h, s_c, s_x, s_y);
+	// printf(LOG_TRT "segNet::Process -- ignoring class '%s' id=%i\n", ignore_class, ignoreID);
+
+
+	// find the argmax-classified class of each tile
+	uint8_t* classMap = mClassMap;
+
+	for( uint32_t y=0; y < s_h; y++ )
+	{
+		for( uint32_t x=0; x < s_w; x++ )
+		{
+			const float p = scores[y * s_w + x];
+			int c;
+			if (p > 0.5){
+				c = 1;
+			}else{
+				c = 0;
+			}
+			classMap[y * s_w + x] = c;
+			//printf("(%u, %u) -> class %i\n", x, y, (uint32_t)c_max);
+		}
+	}
+
+	return true;
+}
+
+
+// argmax classification
+bool segNet::classify_multi( const char* ignore_class )
+{
+	// retrieve scores
+	float* scores = mOutputs[0].CPU;
+
+	const int s_w = DIMS_W(mOutputs[0].dims);
+	const int s_h = DIMS_H(mOutputs[0].dims);
+	const int s_c = DIMS_C(mOutputs[0].dims);
+	// LogInfo(ignore_class);
+		
+	//const float s_x = float(width) / float(s_w);		// TODO bug: this should use mWidth/mHeight dimensions, in case user dimensions are different
+	//const float s_y = float(height) / float(s_h);
+	const float s_x = float(s_w) / float(GetInputWidth());
+	const float s_y = float(s_h) / float(GetInputHeight());
+
+
+	// if desired, find the ID of the class to ignore (typically void)
+	const int ignoreID = FindClassID(ignore_class);
+	
+	// printf(LOG_TRT "segNet::Process -- s_w %i  s_h %i  s_c %i  s_x %f  s_y %f\n", s_w, s_h, s_c, s_x, s_y);
+	// printf(LOG_TRT "segNet::Process -- ignoring class '%s' id=%i\n", ignore_class, ignoreID);
 
 
 	// find the argmax-classified class of each tile
@@ -792,16 +856,16 @@ bool segNet::classify( const char* ignore_class )
 				if( c == ignoreID )
 					continue;
 
+
 				// check if this class score is higher
 				const float p = scores[c * s_w * s_h + y * s_w + x];
-
+			
 				if( c_max < 0 || p > p_max )
 				{
 					p_max = p;
 					c_max = c;
 				}
 			}
-
 			classMap[y * s_w + x] = c_max;
 			//printf("(%u, %u) -> class %i\n", x, y, (uint32_t)c_max);
 		}
