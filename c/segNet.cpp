@@ -159,8 +159,8 @@ segNet::NetworkType segNet::NetworkTypeFromStr( const char* modelName )
 		type = segNet::FCN_RESNET18_SUNRGB_512x400;
 	else if( strcasecmp(modelName, "fcn-resnet18-sun-640x512") == 0 || strcasecmp(modelName, "fcn-resnet18-sun-rgbd-640x512") == 0 )
 		type = segNet::FCN_RESNET18_SUNRGB_640x512;
-	else if( strcasecmp(modelName, "deeplabs_v3_rumex") == 0)
-		type = segNet::DEEPLABS_V3_RUMEX;
+	else if( strcasecmp(modelName, "deeplab_v3_plus_rumex") == 0)
+		type = segNet::DEEPLAB_V3_PLUS_RUMEX;
 
 	// legacy models
 	else if( strcasecmp(modelName, "fcn-alexnet-cityscapes-sd") == 0 || strcasecmp(modelName, "fcn-alexnet-cityscapes") == 0 )
@@ -201,7 +201,7 @@ const char* segNet::NetworkTypeToStr( segNet::NetworkType type )
 		case FCN_RESNET18_VOC_512x320:		return "fcn-resnet18-voc-512x320";
 		case FCN_RESNET18_SUNRGB_512x400:		return "fcn-resnet18-sun-512x400";
 		case FCN_RESNET18_SUNRGB_640x512:		return "fcn-resnet18-sun-640x512";
-		case DEEPLABS_V3_RUMEX: 				return "deeplabs_v3_rumex";
+		case DEEPLAB_V3_PLUS_RUMEX: 				return "deeplab_v3_plus_rumex";
 
 		// legacy models
 		case FCN_ALEXNET_PASCAL_VOC:			return "fcn-alexnet-pascal-voc";
@@ -247,8 +247,8 @@ segNet* segNet::Create( NetworkType networkType, uint32_t maxBatchSize,
 		net = LOAD_ONNX("FCN-ResNet18-SUN-RGBD-512x400");
 	else if( networkType == FCN_RESNET18_SUNRGB_640x512 )
 		net = LOAD_ONNX("FCN-ResNet18-SUN-RGBD-640x512");
-	else if( networkType == DEEPLABS_V3_RUMEX )
-		net = LOAD_ONNX("deeplabs_v3_rumex");
+	else if( networkType == DEEPLAB_V3_PLUS_RUMEX )
+		net = LOAD_ONNX("deeplab_v3_plus_rumex");
 
 	// legacy models
 	else if( networkType == FCN_ALEXNET_PASCAL_VOC )
