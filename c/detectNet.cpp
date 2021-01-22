@@ -44,11 +44,12 @@
 
 
 // constructor
-detectNet::detectNet( float meanPixel ) : tensorNet()
+detectNet::detectNet(NetworkType type,  float meanPixel) : tensorNet()
 {
 	mCoverageThreshold = DETECTNET_DEFAULT_THRESHOLD;
 	mMeanPixel         = meanPixel;
 	mNumClasses        = 0;
+	network_type       =  type;
 
 	mClassColors[0]   = NULL; // cpu ptr
 	mClassColors[1]   = NULL; // gpu ptr
@@ -149,11 +150,11 @@ bool detectNet::init( const char* prototxt, const char* model, const char* mean_
 
 
 // Create
-detectNet* detectNet::Create( const char* prototxt, const char* model, float mean_pixel, const char* class_labels,
+detectNet* detectNet::Create( const char* prototxt, const char* model, NetworkType network_type, float mean_pixel, const char* class_labels,
 						float threshold, const char* input_blob, const char* coverage_blob, const char* bbox_blob, 
 						uint32_t maxBatchSize, precisionType precision, deviceType device, bool allowGPUFallback )
 {
-	detectNet* net = new detectNet(mean_pixel);
+	detectNet* net = new detectNet(network_type, mean_pixel);
 	
 	if( !net )
 		return NULL;
@@ -167,11 +168,11 @@ detectNet* detectNet::Create( const char* prototxt, const char* model, float mea
 
 
 // Create
-detectNet* detectNet::Create( const char* prototxt, const char* model, const char* mean_binary, const char* class_labels, 
+detectNet* detectNet::Create( const char* prototxt, const char* model, NetworkType network_type, const char* mean_binary, const char* class_labels, 
 						float threshold, const char* input_blob, const char* coverage_blob, const char* bbox_blob, 
 						uint32_t maxBatchSize, precisionType precision, deviceType device, bool allowGPUFallback )
 {
-	detectNet* net = new detectNet();
+	detectNet* net = new detectNet(network_type);
 	
 	if( !net )
 		return NULL;
@@ -185,13 +186,13 @@ detectNet* detectNet::Create( const char* prototxt, const char* model, const cha
 
 
 // Create (UFF)
-detectNet* detectNet::Create( const char* model, const char* class_labels, float threshold, 
+detectNet* detectNet::Create( const char* model, const char* class_labels, NetworkType network_type, float threshold, 
 						const char* input, const Dims3& inputDims, 
 						const char* output, const char* numDetections,
 						uint32_t maxBatchSize, precisionType precision,
 				   		deviceType device, bool allowGPUFallback )
 {
-	detectNet* net = new detectNet();
+	detectNet* net = new detectNet(network_type);
 	
 	if( !net )
 		return NULL;
@@ -247,44 +248,44 @@ detectNet* detectNet::Create( NetworkType networkType, float threshold, uint32_t
 {
 #if 1
 	if( networkType == PEDNET_MULTI )
-		return Create("networks/multiped-500/deploy.prototxt", "networks/multiped-500/snapshot_iter_178000.caffemodel", 117.0f, "networks/multiped-500/class_labels.txt", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
+		return Create("networks/multiped-500/deploy.prototxt", "networks/multiped-500/snapshot_iter_178000.caffemodel", networkType, 117.0f, "networks/multiped-500/class_labels.txt", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
 	else if( networkType == FACENET )
-		return Create("networks/facenet-120/deploy.prototxt", "networks/facenet-120/snapshot_iter_24000.caffemodel", 0.0f, "networks/facenet-120/class_labels.txt", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
+		return Create("networks/facenet-120/deploy.prototxt", "networks/facenet-120/snapshot_iter_24000.caffemodel", networkType, 0.0f, "networks/facenet-120/class_labels.txt", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
 	else if( networkType == PEDNET )
-		return Create("networks/ped-100/deploy.prototxt", "networks/ped-100/snapshot_iter_70800.caffemodel", 0.0f, "networks/ped-100/class_labels.txt", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
+		return Create("networks/ped-100/deploy.prototxt", "networks/ped-100/snapshot_iter_70800.caffemodel", networkType, 0.0f, "networks/ped-100/class_labels.txt", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
 	else if( networkType == COCO_AIRPLANE )
-		return Create("networks/DetectNet-COCO-Airplane/deploy.prototxt", "networks/DetectNet-COCO-Airplane/snapshot_iter_22500.caffemodel", 0.0f, "networks/DetectNet-COCO-Airplane/class_labels.txt", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
+		return Create("networks/DetectNet-COCO-Airplane/deploy.prototxt", "networks/DetectNet-COCO-Airplane/snapshot_iter_22500.caffemodel", networkType, 0.0f, "networks/DetectNet-COCO-Airplane/class_labels.txt", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
 	else if( networkType == COCO_BOTTLE )
-		return Create("networks/DetectNet-COCO-Bottle/deploy.prototxt", "networks/DetectNet-COCO-Bottle/snapshot_iter_59700.caffemodel", 0.0f, "networks/DetectNet-COCO-Bottle/class_labels.txt", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
+		return Create("networks/DetectNet-COCO-Bottle/deploy.prototxt", "networks/DetectNet-COCO-Bottle/snapshot_iter_59700.caffemodel", networkType, 0.0f, "networks/DetectNet-COCO-Bottle/class_labels.txt", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
 	else if( networkType == COCO_CHAIR )
-		return Create("networks/DetectNet-COCO-Chair/deploy.prototxt", "networks/DetectNet-COCO-Chair/snapshot_iter_89500.caffemodel", 0.0f, "networks/DetectNet-COCO-Chair/class_labels.txt", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
-	else if( networkType == COCO_DOG )
-		return Create("networks/DetectNet-COCO-Dog/deploy.prototxt", "networks/DetectNet-COCO-Dog/snapshot_iter_38600.caffemodel", 0.0f, "networks/DetectNet-COCO-Dog/class_labels.txt", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
+		return Create("networks/DetectNet-COCO-Chair/deploy.prototxt", "networks/DetectNet-COCO-Chair/snapshot_iter_89500.caffemodel", networkType, 0.0f, "networks/DetectNet-COCO-Chair/class_labels.txt", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
 #if NV_TENSORRT_MAJOR > 4
 	else if( networkType == SSD_INCEPTION_V2 )
-		return Create("networks/SSD-Inception-v2/ssd_inception_v2_coco.uff", "networks/SSD-Inception-v2/ssd_coco_labels.txt", threshold, "Input", Dims3(3,300,300), "NMS", "NMS_1", maxBatchSize, precision, device, allowGPUFallback);
+		return Create("networks/SSD-Inception-v2/ssd_inception_v2_coco.uff", "networks/SSD-Inception-v2/ssd_coco_labels.txt", networkType, threshold, "Input", Dims3(3,300,300), "NMS", "NMS_1", maxBatchSize, precision, device, allowGPUFallback);
 	else if( networkType == SSD_MOBILENET_V1 )
-		return Create("networks/SSD-Mobilenet-v1/ssd_mobilenet_v1_coco.uff", "networks/SSD-Mobilenet-v1/ssd_coco_labels.txt", threshold, "Input", Dims3(3,300,300), "Postprocessor", "Postprocessor_1", maxBatchSize, precision, device, allowGPUFallback);
+		return Create("networks/SSD-Mobilenet-v1/ssd_mobilenet_v1_coco.uff", "networks/SSD-Mobilenet-v1/ssd_coco_labels.txt", networkType, threshold, "Input", Dims3(3,300,300), "Postprocessor", "Postprocessor_1", maxBatchSize, precision, device, allowGPUFallback);
 	else if( networkType == SSD_MOBILENET_V2 )
-		return Create("networks/SSD-Mobilenet-v2/ssd_mobilenet_v2_coco.uff", "networks/SSD-Mobilenet-v2/ssd_coco_labels.txt", threshold, "Input", Dims3(3,300,300), "NMS", "NMS_1", maxBatchSize, precision, device, allowGPUFallback);
+		return Create("networks/SSD-Mobilenet-v2/ssd_mobilenet_v2_coco.uff", "networks/SSD-Mobilenet-v2/ssd_coco_labels.txt", networkType, threshold, "Input", Dims3(3,300,300), "NMS", "NMS_1", maxBatchSize, precision, device, allowGPUFallback);
+	else if (networkType == YOLO_v3)
+		return Create("networks/yolo_v3/model.onnx", "networks/yolo_v3/classes.txt", networkType, threshold, "images", Dims3(3,640,640), "NMS", "NMS_1", maxBatchSize, precision, device, allowGPUFallback);
 #endif
 	else
 		return NULL;
 #else
 	if( networkType == PEDNET_MULTI )
-		return Create("networks/multiped-500/deploy.prototxt", "networks/multiped-500/snapshot_iter_178000.caffemodel", "networks/multiped-500/mean.binaryproto", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
+		return Create("networks/multiped-500/deploy.prototxt", "networks/multiped-500/snapshot_iter_178000.caffemodel", networkType, "networks/multiped-500/mean.binaryproto", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
 	else if( networkType == FACENET )
-		return Create("networks/facenet-120/deploy.prototxt", "networks/facenet-120/snapshot_iter_24000.caffemodel", NULL, threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
+		return Create("networks/facenet-120/deploy.prototxt", "networks/facenet-120/snapshot_iter_24000.caffemodel", networkType, NULL, threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
 	else if( networkType == PEDNET )
-		return Create("networks/ped-100/deploy.prototxt", "networks/ped-100/snapshot_iter_70800.caffemodel", "networks/ped-100/mean.binaryproto", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
+		return Create("networks/ped-100/deploy.prototxt", "networks/ped-100/snapshot_iter_70800.caffemodel", networkType, "networks/ped-100/mean.binaryproto", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
 	else if( networkType == COCO_AIRPLANE )
-		return Create("networks/DetectNet-COCO-Airplane/deploy.prototxt", "networks/DetectNet-COCO-Airplane/snapshot_iter_22500.caffemodel", "networks/DetectNet-COCO-Airplane/mean.binaryproto", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
+		return Create("networks/DetectNet-COCO-Airplane/deploy.prototxt", "networks/DetectNet-COCO-Airplane/snapshot_iter_22500.caffemodel", networkType, "networks/DetectNet-COCO-Airplane/mean.binaryproto", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
 	else if( networkType == COCO_BOTTLE )
-		return Create("networks/DetectNet-COCO-Bottle/deploy.prototxt", "networks/DetectNet-COCO-Bottle/snapshot_iter_59700.caffemodel", "networks/DetectNet-COCO-Bottle/mean.binaryproto", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
+		return Create("networks/DetectNet-COCO-Bottle/deploy.prototxt", "networks/DetectNet-COCO-Bottle/snapshot_iter_59700.caffemodel", networkType, "networks/DetectNet-COCO-Bottle/mean.binaryproto", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
 	else if( networkType == COCO_CHAIR )
-		return Create("networks/DetectNet-COCO-Chair/deploy.prototxt", "networks/DetectNet-COCO-Chair/snapshot_iter_89500.caffemodel", "networks/DetectNet-COCO-Chair/mean.binaryproto", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
+		return Create("networks/DetectNet-COCO-Chair/deploy.prototxt", "networks/DetectNet-COCO-Chair/snapshot_iter_89500.caffemodel", networkType, "networks/DetectNet-COCO-Chair/mean.binaryproto", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
 	else if( networkType == COCO_DOG )
-		return Create("networks/DetectNet-COCO-Dog/deploy.prototxt", "networks/DetectNet-COCO-Dog/snapshot_iter_38600.caffemodel", "networks/DetectNet-COCO-Dog/mean.binaryproto", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
+		return Create("networks/DetectNet-COCO-Dog/deploy.prototxt", "networks/DetectNet-COCO-Dog/snapshot_iter_38600.caffemodel", networkType, "networks/DetectNet-COCO-Dog/mean.binaryproto", threshold, DETECTNET_DEFAULT_INPUT, DETECTNET_DEFAULT_COVERAGE, DETECTNET_DEFAULT_BBOX, maxBatchSize, precision, device, allowGPUFallback );
 	else 
 		return NULL;
 #endif
@@ -296,6 +297,7 @@ detectNet::NetworkType detectNet::NetworkTypeFromStr( const char* modelName )
 {
 	if( !modelName )
 		return detectNet::CUSTOM;
+		
 
 	detectNet::NetworkType type = detectNet::PEDNET;
 
@@ -313,6 +315,8 @@ detectNet::NetworkType detectNet::NetworkTypeFromStr( const char* modelName )
 		type = detectNet::COCO_CHAIR;
 	else if( strcasecmp(modelName, "coco-dog") == 0 || strcasecmp(modelName, "dog") == 0 )
 		type = detectNet::COCO_DOG;
+	else if( strcasecmp(modelName, "SSD-VGG16") == 0 || strcasecmp(modelName, "ssd_vgg16") == 0 )
+		type = detectNet::SSD_VGG16;
 #if NV_TENSORRT_MAJOR > 4
 	else if( strcasecmp(modelName, "ssd-inception") == 0 || strcasecmp(modelName, "ssd-inception-v2") == 0 || strcasecmp(modelName, "coco-ssd-inception") == 0 || strcasecmp(modelName, "coco-ssd-inception-v2") == 0)
 		type = detectNet::SSD_INCEPTION_V2;
@@ -320,6 +324,8 @@ detectNet::NetworkType detectNet::NetworkTypeFromStr( const char* modelName )
 		type = detectNet::SSD_MOBILENET_V1;
 	else if( strcasecmp(modelName, "ssd-mobilenet-v2") == 0 || strcasecmp(modelName, "coco-ssd-mobilenet-v2") == 0 || strcasecmp(modelName, "ssd-mobilenet") == 0 )
 		type = detectNet::SSD_MOBILENET_V2;
+	else if (strcasecmp(modelName, "yolo_v3") == 0)
+		type = detectNet::YOLO_v3;
 #endif
 	else
 		type = detectNet::CUSTOM;
@@ -342,8 +348,10 @@ detectNet* detectNet::Create( const commandLine& cmdLine )
 
 	// parse command line parameters
 	const char* modelName = cmdLine.GetString("network");
+	// parse the model type
+	const detectNet::NetworkType type = NetworkTypeFromStr(modelName);
 	
-	if( !modelName )
+	if(type == detectNet::CUSTOM || type == detectNet::SSD_VGG16)
 		modelName = cmdLine.GetString("model", "ssd-mobilenet-v2");
 
 	float threshold = cmdLine.GetFloat("threshold");
@@ -356,10 +364,8 @@ detectNet* detectNet::Create( const commandLine& cmdLine )
 	if( maxBatchSize < 1 )
 		maxBatchSize = DEFAULT_MAX_BATCH_SIZE;
 
-	// parse the model type
-	const detectNet::NetworkType type = NetworkTypeFromStr(modelName);
 
-	if( type == detectNet::CUSTOM )
+	if( type == detectNet::CUSTOM || type == detectNet::SSD_VGG16)
 	{
 		const char* prototxt     = cmdLine.GetString("prototxt");
 		const char* input        = cmdLine.GetString("input_blob");
@@ -382,7 +388,7 @@ detectNet* detectNet::Create( const commandLine& cmdLine )
 
 		float meanPixel = cmdLine.GetFloat("mean_pixel");
 
-		net = detectNet::Create(prototxt, modelName, meanPixel, class_labels, threshold, input, 
+		net = detectNet::Create(prototxt, modelName, type, meanPixel, class_labels, threshold, input, 
 							out_blob ? NULL : out_cvg, out_blob ? out_blob : out_bbox, maxBatchSize);
 	}
 	else
@@ -712,7 +718,6 @@ int detectNet::Detect( void* input, uint32_t width, uint32_t height, imageFormat
 	}
 
 	PROFILER_BEGIN(PROFILER_PREPROCESS);
-
 	if( IsModelType(MODEL_UFF) )
 	{
 		if( CUDA_FAILED(cudaTensorNormBGR(input, format, width, height, 
@@ -725,16 +730,30 @@ int detectNet::Detect( void* input, uint32_t width, uint32_t height, imageFormat
 	}
 	else if( IsModelType(MODEL_ONNX) )
 	{
-		// downsample, convert to band-sequential RGB, and apply pixel normalization, mean pixel subtraction and standard deviation
-		if( CUDA_FAILED(cudaTensorNormMeanRGB(input, format, width, height,
-									   mInputs[0].CUDA, GetInputWidth(), GetInputHeight(), 
-									   make_float2(0.0f, 1.0f), 
-									   make_float3(0.5f, 0.5f, 0.5f),
-									   make_float3(0.5f, 0.5f, 0.5f), 
-									   GetStream())) )
-		{
-			LogError(LOG_TRT "detectNet::Detect() -- cudaTensorNormMeanRGB() failed\n");
-			return false;
+		if( network_type == detectNet::CUSTOM ){
+			// downsample, convert to band-sequential RGB, and apply pixel normalization, mean pixel subtraction and standard deviation
+			if( CUDA_FAILED(cudaTensorNormMeanRGB(input, format, width, height,
+										mInputs[0].CUDA, GetInputWidth(), GetInputHeight(), 
+										make_float2(0.0f, 1.0f), 
+										make_float3(0.5f, 0.5f, 0.5f),
+										make_float3(0.5f, 0.5f, 0.5f), 
+										GetStream())) )
+			{
+				LogError(LOG_TRT "detectNet::Detect() -- cudaTensorNormMeanRGB() failed\n");
+				return false;
+			}
+		} else if (network_type == detectNet::SSD_VGG16){
+			// downsample, convert to band-sequential RGB, and apply pixel normalization, mean pixel subtraction and standard deviation
+			if( CUDA_FAILED(cudaTensorNormMeanRGB(input, format, width, height,
+										mInputs[0].CUDA, GetInputWidth(), GetInputHeight(), 
+										make_float2(0.0f, 1.0f), 
+										make_float3(0.48f, 0.45f, 0.40f),
+										make_float3(0.004f, 0.004f, 0.004f), 
+										GetStream())) )
+			{
+				LogError(LOG_TRT "detectNet::Detect() -- cudaTensorNormMeanRGB() failed\n");
+				return false;
+			}
 		}
 	}
 	else

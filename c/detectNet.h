@@ -183,6 +183,7 @@ public:
 	enum NetworkType
 	{
 		CUSTOM = 0,		/**< Custom model from user */
+		SSD_VGG16,
 		COCO_AIRPLANE,		/**< MS-COCO airplane class */
 		COCO_BOTTLE,		/**< MS-COCO bottle class */
 		COCO_CHAIR,		/**< MS-COCO chair class */
@@ -194,7 +195,8 @@ public:
 #if NV_TENSORRT_MAJOR > 4
 		SSD_MOBILENET_V1,	/**< SSD Mobilenet-v1 UFF model, trained on MS-COCO */
 		SSD_MOBILENET_V2,	/**< SSD Mobilenet-v2 UFF model, trained on MS-COCO */
-		SSD_INCEPTION_V2	/**< SSD Inception-v2 UFF model, trained on MS-COCO */
+		SSD_INCEPTION_V2,	/**< SSD Inception-v2 UFF model, trained on MS-COCO */
+		YOLO_v3
 #endif
 	};
 
@@ -236,7 +238,7 @@ public:
 	 * @param bboxes Name of the output bounding box layer blob, which contains a grid of rectangles in the image.
 	 * @param maxBatchSize The maximum batch size that the network will support and be optimized for.
 	 */
-	static detectNet* Create( const char* prototxt_path, const char* model_path, const char* mean_binary, 
+	static detectNet* Create( const char* prototxt_path, const char* model_path, NetworkType network_type, const char* mean_binary, 
 						 const char* class_labels, float threshold=DETECTNET_DEFAULT_THRESHOLD, 
 						 const char* input = DETECTNET_DEFAULT_INPUT, 
 						 const char* coverage = DETECTNET_DEFAULT_COVERAGE, 
@@ -257,7 +259,7 @@ public:
 	 * @param bboxes Name of the output bounding box layer blob, which contains a grid of rectangles in the image.
 	 * @param maxBatchSize The maximum batch size that the network will support and be optimized for.
 	 */
-	static detectNet* Create( const char* prototxt_path, const char* model_path, float mean_pixel=0.0f, 
+	static detectNet* Create( const char* prototxt_path, const char* model_path, NetworkType network_type, float mean_pixel=0.0f, 
 						 const char* class_labels=NULL, float threshold=DETECTNET_DEFAULT_THRESHOLD, 
 						 const char* input = DETECTNET_DEFAULT_INPUT, 
 						 const char* coverage = DETECTNET_DEFAULT_COVERAGE, 
@@ -277,7 +279,7 @@ public:
 	 * @param numDetections Name of the output layer blob containing the detection count.
 	 * @param maxBatchSize The maximum batch size that the network will support and be optimized for.
 	 */
-	static detectNet* Create( const char* model_path, const char* class_labels, float threshold, 
+	static detectNet* Create( const char* model_path, const char* class_labels, NetworkType network_type, float threshold, 
 						 const char* input, const Dims3& inputDims, 
 						 const char* output, const char* numDetections,
 						 uint32_t maxBatchSize=DEFAULT_MAX_BATCH_SIZE, 
@@ -459,11 +461,14 @@ public:
 	 * Procedurally generate a bounding box color for a class index.
 	 */
 	static void GenerateColor( uint32_t classID, uint8_t* rgb ); 
+
+	detectNet::NetworkType network_type;
+
 	
 protected:
 
 	// constructor
-	detectNet( float meanPixel=0.0f );
+	detectNet(NetworkType type, float meanPixel=0.0f);
 
 	bool allocDetections();
 	bool defaultColors();
